@@ -1,0 +1,30 @@
+{
+  "name": "ipeds-core",
+  "version": "0.1.0",
+  "description": "",
+  "homepage": "https://github.com/skyrim-multiplayer/ipeds-core#readme",
+  "bugs": {
+    "url": "https://github.com/skyrim-multiplayer/ipeds-core/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/skyrim-multiplayer/ipeds-core.git"
+  },
+  "license": "MIT",
+  "author": "",
+  "type": "commonjs",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "scripts": {
+    "build": "tsc"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.3"
+  }
+}
