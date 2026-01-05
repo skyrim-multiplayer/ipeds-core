@@ -27,10 +27,11 @@ export interface IpedsEventsController<TEvents extends Record<string, any>> {
 }
 
 export class IpedsEventsControllerImpl<TEvents extends Record<string, any>> implements IpedsEventsController<TEvents> {
+  readonly emitter: IpedsEventEmitter<TEvents>;
+
   constructor() {
     this.emitter = new EventEmitter() as IpedsEventEmitter<TEvents>;
   }
-
 }
 
 export interface IpedsServiceLookupController<TUserDefinedAPI, TController> {
