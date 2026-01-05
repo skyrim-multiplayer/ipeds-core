@@ -1,43 +1,48 @@
-export type Constructor<T> = new (...args: any[]) => T;
+export type IpedsConstructor<T> = new (...args: any[]) => T;
 
-export interface IpedsController<UDAPI = any, Settings = any> {
-  readonly events: { emit: (event: any) => void };
-  readonly settings: Settings;
-  readonly api: UDAPI;
-  lookupService<T>(ctor: Constructor<T>): T;
+export type IpedsServiceConstructor<T, TUserDefinedAPI, TController> = new (api: TUserDefinedAPI, controller: TController) => T;
+
+// https://blog.makerx.com.au/a-type-safe-event-emitter-in-node-js/
+export interface IpedsEventEmitter<TEvents extends Record<string, any>> {
+  emit<TEventName extends keyof TEvents & string>(
+    eventName: TEventName,
+    ...eventArg: TEvents[TEventName]
+  ): void;
+
+  on<TEventName extends keyof TEvents & string>(
+    eventName: TEventName,
+    handler: (...eventArg: TEvents[TEventName]) => void
+  ): void;
+
+  off<TEventName extends keyof TEvents & string>(
+    eventName: TEventName,
+    handler: (...eventArg: TEvents[TEventName]) => void
+  ): void;
 }
 
-export abstract class IpedsService<UDAPI = any, Settings = any> {
-  constructor(protected readonly ctx: IpedsController<UDAPI, Settings>) {}
+export interface IpedsEventsController<TEvents extends Record<string, any>> {
+  readonly emitter: IpedsEventEmitter<TEvents>;
+  lookupService<T>(ctor: IpedsConstructor<T>): T;
 }
 
-export class IpedsEngine<UDAPI> {
-  private instances = new Map<Function, any>();
+export abstract class IpedsService<TUserDefinedAPI, TController> {
+  constructor(_api: TUserDefinedAPI, _controller: TController) { }
+}
 
-  constructor(private api: UDAPI) {}
+export abstract class IpedsEngine<TUserDefinedAPI, TController> {
+  private instances = new Map<Function, IpedsService<TUserDefinedAPI, TController>>();
 
-  public initialize(services: Constructor<any>[]): void {
-    const controller: IpedsController<UDAPI> = {
-      api: this.api,
-      events: { emit: (e) => this.routeEvent(e) },
-      settings: {} as any,
-      lookupService: (ctor) => this.instances.get(ctor),
-    };
+  constructor(private api: TUserDefinedAPI) { }
 
-    // Instantiate all services (Linear initialization)
-    services.forEach(Ctor => {
-      this.instances.set(Ctor, new Ctor(controller));
+  public setup(services: IpedsServiceConstructor<any, TUserDefinedAPI, TController>[]): void {
+    services.forEach(ctor => {
+      this.instances.set(ctor, new ctor(this.api, this.createController(ctor)));
     });
   }
 
-  private routeEvent(event: any): void {
-    const eventName = event.constructor.name;
-    const methodName = `on${eventName}`;
-    
-    for (const instance of this.instances.values()) {
-      if (typeof instance[methodName] === 'function') {
-        instance[methodName](event);
-      }
-    }
+  protected getServiceInstances(): ReadonlyMap<Function, IpedsService<TUserDefinedAPI, TController>> {
+    return this.instances;
   }
+
+  protected abstract createController(serviceCtor: IpedsServiceConstructor<unknown, TUserDefinedAPI, TController>): TController;
 }
