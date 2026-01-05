@@ -7,7 +7,17 @@ export interface IpedsEventEmitter<TEvents extends Record<string, any>> {
 }
 export interface IpedsEventsController<TEvents extends Record<string, any>> {
     readonly emitter: IpedsEventEmitter<TEvents>;
-    lookupService<T>(ctor: IpedsConstructor<T>): T;
+}
+export declare class IpedsEventsControllerImpl<TEvents extends Record<string, any>> implements IpedsEventsController<TEvents> {
+    constructor();
+}
+export interface IpedsServiceLookupController<TUserDefinedAPI, TController> {
+    lookupService<T extends IpedsService<TUserDefinedAPI, TController>>(ctor: IpedsConstructor<T>): T;
+}
+export declare class IpedsServiceLookupControllerImpl<TUserDefinedAPI, TController> implements IpedsServiceLookupController<TUserDefinedAPI, TController> {
+    private engine;
+    constructor(engine: IpedsEngine<TUserDefinedAPI, TController>);
+    lookupService<T extends IpedsService<TUserDefinedAPI, TController>>(ctor: IpedsConstructor<T>): T;
 }
 export declare abstract class IpedsService<TUserDefinedAPI, TController> {
     constructor(_api: TUserDefinedAPI, _controller: TController);
@@ -17,6 +27,6 @@ export declare abstract class IpedsEngine<TUserDefinedAPI, TController> {
     private instances;
     constructor(api: TUserDefinedAPI);
     setup(services: IpedsServiceConstructor<any, TUserDefinedAPI, TController>[]): void;
-    protected getServiceInstances(): ReadonlyMap<Function, IpedsService<TUserDefinedAPI, TController>>;
+    getServiceInstances(): ReadonlyMap<Function, IpedsService<TUserDefinedAPI, TController>>;
     protected abstract createController(serviceCtor: IpedsServiceConstructor<unknown, TUserDefinedAPI, TController>): TController;
 }
